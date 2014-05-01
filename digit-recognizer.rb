@@ -81,8 +81,8 @@ class KnnClassifier
 end
 
 def run_test
-	training = read_train_csv({max_read: 20000, file_path: '../train.csv'})
-	test = read_train_csv({max_read: 500, start_read: 20000, file_path: '../train.csv'})
+	training = read_train_csv({max_read: 20000, file_path: 'train.csv'})
+	test = read_train_csv({max_read: 500, start_read: 20000, file_path: 'train.csv'})
 	
 	knnClassifier = KnnClassifier.new(training)
 
