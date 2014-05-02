@@ -4,17 +4,6 @@ def euclidean_distance(a, b)
 	Math.sqrt(a.zip(b).inject(0){ |sum, o| sum + ((o[0] - o[1])**2) })
 end
 
-def print_vector(v) # TODO move into TrainingVector
-	v.each_slice(28).each { |pxs| 
-		puts pxs.map{ |px| 
-			px == 0 ? ' ' : 
-				px <= 128 ? '.' : 
-					px <= 192 ? '+' :
-						px <= 252 ? '*' : '%'
-		}.join()
-	}
-end
-
 class TrainingVector
 	attr_accessor :classification, :vector
 	def initialize(classification, vector)
@@ -23,6 +12,16 @@ class TrainingVector
 	end
 	def to_s
 		"TV<c:#{classification}>"
+	end
+	def draw
+		@vector.each_slice(28).each { |pxs| 
+			puts pxs.map{ |px| 
+				px == 0 ? ' ' : 
+					px <= 128 ? '.' : 
+						px <= 192 ? '+' :
+							px <= 252 ? '*' : '%'
+			}.join()
+		}
 	end
 end
 

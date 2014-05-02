@@ -31,7 +31,7 @@ work in progress while I figure out how to make it faster for the real test (28k
     > knnClassifier.majority_classify(test[0].vector)
     => "1" 
 
-    > print_vector(test[0].vector)
+    > test[0].draw
                                 
                                 
                                 
@@ -68,7 +68,7 @@ work in progress while I figure out how to make it faster for the real test (28k
     > test[8].classification
     => "7" 
     
-    > print_vector(test[8].vector)
+    > test[8].draw
                                 
                                 
                                 
