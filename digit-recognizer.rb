@@ -25,26 +25,6 @@ class TrainingVector
 	end
 end
 
-def read_training_vectors(opts = {})
-	require 'csv'
-
-	training_vectors = []
-	start_read = opts[:start] || 0
-	max_read = opts[:max]
-	file_path = opts[:file] || 'train.csv'
-
-	skip_i = -1  # first row of csv is labels we dont care about.
-	read_i = 0
-	CSV.foreach(file_path) do |row|
-		(skip_i += 1) and next if skip_i < start_read # could optimize this out
-		training_vectors << TrainingVector.new(row.shift, row.map(&:to_i))
-		break if !max_read.nil? && (read_i += 1) == max_read
-	end
-
-	training_vectors
-end
-alias :rtv :read_training_vectors
-
 class KnnClassifier
 	attr_accessor :training_vectors
 	def initialize(training_vectors)
@@ -108,6 +88,26 @@ class KnnClassifier
 		weights.key(weights.values.max) # classification with max weight, no guarantee of order in case of tie
 	end
 end
+
+def read_training_vectors(opts = {})
+	require 'csv'
+
+	training_vectors = []
+	start_read = opts[:start] || 0
+	max_read = opts[:max]
+	file_path = opts[:file] || 'train.csv'
+
+	skip_i = -1  # first row of csv is labels we dont care about.
+	read_i = 0
+	CSV.foreach(file_path) do |row|
+		(skip_i += 1) and next if skip_i < start_read # could optimize this out
+		training_vectors << TrainingVector.new(row.shift, row.map(&:to_i))
+		break if !max_read.nil? && (read_i += 1) == max_read
+	end
+
+	training_vectors
+end
+alias :rtv :read_training_vectors
 
 def run_test
 	require 'pp'
