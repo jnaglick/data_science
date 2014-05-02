@@ -1,14 +1,17 @@
 # TODO 4 spaces instead of tabs
+# TODO multithreading
 def euclidean_distance(a, b)
 	raise Exception.new('euclidean_distance expects vectors of same length') if a.length != b.length
 	Math.sqrt(a.zip(b).inject(0){ |sum, o| sum + ((o[0] - o[1])**2) })
 end
 
 class TrainingVector
-	attr_accessor :classification, :vector
-	def initialize(classification, vector)
+	attr_accessor :classification, :vector, :file_name, :file_index
+	def initialize(classification, vector, file_name, file_index)
 		@classification = classification
 		@vector = vector
+		@file_name = file_name
+		@file_index = file_index
 	end
 	def to_s
 		"TV<c:#{classification}>"
@@ -31,7 +34,7 @@ class KnnClassifier
 		@training_vectors = training_vectors
 	end
 
-	def knn(vector, k = 5) # returns {euclidean_distance: TrainingVector, ...}
+	def knn(vector, k = 5) # returns {euclidean_distance: TrainingVector, ...} # TODO rearrange this
 		raise Exception.new('k must be odd') unless k % 2 == 1
 		knn = {}
 
@@ -89,6 +92,10 @@ class KnnClassifier
 	end
 end
 
+def read_training_vector(index, file = 'train.csv')
+	read_training_vectors(start: index, max: 1, file: file)[0]
+end
+
 def read_training_vectors(opts = {})
 	require 'csv'
 
@@ -101,7 +108,7 @@ def read_training_vectors(opts = {})
 	read_i = 0
 	CSV.foreach(file_path) do |row|
 		(skip_i += 1) and next if skip_i < start_read # could optimize this out
-		training_vectors << TrainingVector.new(row.shift, row.map(&:to_i))
+		training_vectors << TrainingVector.new(row.shift, row.map(&:to_i), file_path, skip_i + read_i)
 		break if !max_read.nil? && (read_i += 1) == max_read
 	end
 
@@ -135,7 +142,7 @@ def run_test
 		majority_guess = multi_classify[:majority] || '?'
 		weighted_guess = multi_classify[:weighted]
 
-		puts "known: #{known} majority_guess: #{majority_guess} [#{known==majority_guess ? '!' : ' '}] weighted_guess: #{weighted_guess} [#{known==weighted_guess ? '!' : ' '}]"
+		puts "[#{test_vector.file_index}] known: #{known} majority_guess: #{majority_guess} [#{known==majority_guess ? '!' : ' '}] weighted_guess: #{weighted_guess} [#{known==weighted_guess ? '!' : ' '}]"
 		
 		if known == majority_guess
 			correct[:majority] += 1 
