@@ -15,11 +15,11 @@ work in progress while I figure out how to make it faster for the real test (28k
     > load 'digit-recognizer.rb'
     => true
 
-    > training = read_train_csv({max_read: 1000, file_path: 'train.csv'})
+    > # this is really small for the example. set max_read higher (like 20000) for real results
+    > training = read_training_vectors(max: 1000, file: '../train.csv')
     => ...
 
-    > # note this is really small. set max_read higher (like 20000) for real results
-    > test = read_train_csv({max_read: 10, start_read: 1000, file_path: 'train.csv'})
+    > test = read_training_vectors(max: 10, start: 1000, file: '../train.csv')
     => ...
 
     > knnClassifier = KnnClassifier.new(training)
@@ -28,7 +28,7 @@ work in progress while I figure out how to make it faster for the real test (28k
     > test[0].classification
     => "1" 
 
-    > knnClassifier.knn_classify(test[0].vector)
+    > knnClassifier.majority_classify(test[0].vector)
     => "1" 
 
     > print_vector(test[0].vector)
@@ -62,7 +62,7 @@ work in progress while I figure out how to make it faster for the real test (28k
                                 
     => nil 
 
-    > knnClassifier.knn_classify(test[8].vector)
+    > knnClassifier.majority_classify(test[8].vector)
     => "7" 
 
     > test[8].classification

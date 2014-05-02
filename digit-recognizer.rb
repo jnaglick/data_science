@@ -21,15 +21,18 @@ class TrainingVector
 		@classification = classification
 		@vector = vector
 	end
+	def to_s
+		"TV<c:#{classification}>"
+	end
 end
 
-def read_train_csv(opts = {})
+def read_training_vectors(opts = {})
 	require 'csv'
 
 	training_vectors = []
-	start_read = opts[:start_read] || 0
-	max_read = opts[:max_read]
-	file_path = opts[:file_path] || 'train.csv'
+	start_read = opts[:start] || 0
+	max_read = opts[:max]
+	file_path = opts[:file] || 'train.csv'
 
 	skip_i = -1  # first row of csv is labels we dont care about.
 	read_i = 0
@@ -41,6 +44,7 @@ def read_train_csv(opts = {})
 
 	training_vectors
 end
+alias :rtv :read_training_vectors
 
 class KnnClassifier
 	attr_accessor :training_vectors
@@ -71,30 +75,84 @@ class KnnClassifier
 		knn
 	end
 
-	def knn_classify(vector, k = 5) # returns {classification: knn} requires majority
+	def multi_classify(vector, k = 5)
 		knn = knn(vector, k)
+		{
+			majority: majority_classification_on_knn(knn, k),
+			weighted: weighted_classification_on_knn(knn, k)
+		}
+	end
+
+	def majority_classify(vector, k = 5)
+		majority_classification_on_knn(knn(vector, k), k)
+	end
+
+	def weighted_classify(vector, k = 5)
+		weighted_classification_on_knn(knn(vector, k), k)
+	end
+
+	protected
+
+	def majority_classification_on_knn(knn, k)
 		knn.values.each do |tv| # TODO make this not dumb. im tired.
 			return tv.classification if knn.values.select{|tv2|tv.classification == tv2.classification}.length > k/2 # integer math
 		end
 		nil # no classification had majority
 	end
+
+	def weighted_classification_on_knn(knn, k)
+		weights = {}
+		knn.each do |e_d, training_vector|
+			weights[training_vector.classification] ||= 0
+			weights[training_vector.classification] += 1 / e_d # exact matches will produce a divide by 0
+		end
+		weights.key(weights.values.max) # classification with max weight, no guarantee of order in case of tie
+	end
 end
 
 def run_test
-	training = read_train_csv({max_read: 20000, file_path: 'train.csv'})
-	test = read_train_csv({max_read: 500, start_read: 20000, file_path: 'train.csv'})
+	training = read_training_vectors(max: 10000, file: '../train.csv')
+	test = read_training_vectors(max: 1000, start: 10000, file: '../train.csv')
 	
 	knnClassifier = KnnClassifier.new(training)
 
-	correct = 0
+	correct = {
+		majority: 0,
+		weighted: 0
+	}
+	digits_correct = {
+		majority: -> {("0".."9").each do |d| h[d] = 0 end; h}.call,
+		weighted: -> {("0".."9").each do |d| h[d] = 0 end; h}.call
+	}
+	digits_incorrect = {
+		majority: -> {("0".."9").each do |d| h[d] = 0 end; h}.call,
+		weighted: -> {("0".."9").each do |d| h[d] = 0 end; h}.call
+	}
 	test.sort{|x,y| x.classification <=> y.classification}.each do |test_vector|
 		known = test_vector.classification
-		guess = knnClassifier.knn_classify(test_vector.vector, 3) || '?'
-		puts "known: #{known} guess: #{guess} [#{known==guess ? '!' : ' '}]"
-		correct += 1 if known == guess
+
+		multi_classify = knnClassifier.multi_classify(test_vector.vector, 3)
+		majority_guess = multi_classify[:majority] || '?'
+		weighted_guess = multi_classify[:weighted]
+
+		puts "known: #{known} majority_guess: #{majority_guess} [#{known==majority_guess ? '!' : ' '}] weighted_guess: #{weighted_guess} [#{known==weighted_guess ? '!' : ' '}]"
+		
+		if known == majority_guess
+			correct[:majority] += 1 
+			digits_correct[:majority][known] += 1
+		else
+			digits_incorrect[:majority][known] += 1
+		end
+
+		if known == weighted_guess
+			correct[:weighted] += 1 
+			digits_correct[:weighted][known] += 1
+		else
+			digits_incorrect[:weighted][known] += 1
+		end
 	end
 
-	puts "correct: #{correct} - #{correct * 100.to_f/test.length}%"
-
+	puts "correct[:majority]: #{correct[:majority]} - #{correct[:majority] * 100.to_f/test.length}%"
+	puts "correct[:weighted]: #{correct[:weighted]} - #{correct[:weighted] * 100.to_f/test.length}%"
 	nil
 end
