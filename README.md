@@ -7,7 +7,13 @@ solves "digit recognizer" problem on kaggle (kaggle.com/c/digit-recognizer)
 
 *or* 
 
-(2) run run_test(). this function creates two sets from train.csv, training and test, using the options to read_train_csv. it uses training for the classifier which then tries to classify from test. it compares to the known class to produce the test result.currently around 97%-98% benchmark. 
+run run_test(). 
+
+##### about run_test
+
+this function creates two sets from train.csv, training and test, using the options to read_training_vectors. it uses training for the classifier which then tries to classify from test. it compares to the known class to produce the test result. it's currently around a 97%-98% success rate. 
+
+##### status
 
 work in progress while I figure out how to make it faster for the real test (28k records will take a while)
 
