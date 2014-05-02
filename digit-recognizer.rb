@@ -111,6 +111,7 @@ class KnnClassifier
 end
 
 def run_test
+	require 'pp'
 	training = read_training_vectors(max: 10000, file: '../train.csv')
 	test = read_training_vectors(max: 1000, start: 10000, file: '../train.csv')
 	
@@ -121,12 +122,12 @@ def run_test
 		weighted: 0
 	}
 	digits_correct = {
-		majority: -> {("0".."9").each do |d| h[d] = 0 end; h}.call,
-		weighted: -> {("0".."9").each do |d| h[d] = 0 end; h}.call
+		majority: -> {h = {} and ("0".."9").each do |d| h[d] = 0 end; h}.call,
+		weighted: -> {h = {} and ("0".."9").each do |d| h[d] = 0 end; h}.call
 	}
 	digits_incorrect = {
-		majority: -> {("0".."9").each do |d| h[d] = 0 end; h}.call,
-		weighted: -> {("0".."9").each do |d| h[d] = 0 end; h}.call
+		majority: -> {h = {} and ("0".."9").each do |d| h[d] = 0 end; h}.call,
+		weighted: -> {h = {} and ("0".."9").each do |d| h[d] = 0 end; h}.call
 	}
 	test.sort{|x,y| x.classification <=> y.classification}.each do |test_vector|
 		known = test_vector.classification
@@ -152,7 +153,18 @@ def run_test
 		end
 	end
 
-	puts "correct[:majority]: #{correct[:majority]} - #{correct[:majority] * 100.to_f/test.length}%"
-	puts "correct[:weighted]: #{correct[:weighted]} - #{correct[:weighted] * 100.to_f/test.length}%"
+	puts " - - MAJORITY - -"
+	puts "correct: #{correct[:majority]} - #{correct[:majority] * 100.to_f/test.length}%"
+	puts "digits correct:"
+	pp digits_correct[:majority]
+	puts "digits incorrect:"
+	pp digits_incorrect[:majority]
+
+	puts " - - WEIGHTED - -"
+	puts "correct: #{correct[:weighted]} - #{correct[:weighted] * 100.to_f/test.length}%"
+	puts "digits correct:"
+	pp digits_correct[:weighted]
+	puts "digits incorrect:"
+	pp digits_incorrect[:weighted]
 	nil
 end
